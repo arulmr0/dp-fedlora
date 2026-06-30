@@ -34,6 +34,7 @@ from src.data_module.dataset import MedMNISTFederated
 from src.fl_module.server import global_evaluate
 from src.fl_module.simulation import run_fl_simulation
 from src.model_module.backbone import build_model
+from src.model_module.lora_utils import log_adapter_stats
 from src.utils.seed import set_seed
 
 logger = logging.getLogger(__name__)
@@ -65,6 +66,7 @@ def main(cfg: DictConfig) -> None:
     # ── Model ─────────────────────────────────────────────────────────────────
     logger.info("Building model: %s (lora=%s)", cfg.model.name, cfg.model.use_lora)
     global_model = build_model(cfg)
+    log_adapter_stats(global_model)
     global_model.to(device)
 
     # ── Simulate FL ───────────────────────────────────────────────────────────

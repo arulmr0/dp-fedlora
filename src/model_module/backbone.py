@@ -90,15 +90,25 @@ class MedicalViT(nn.Module):
 
 
 def build_model(cfg: DictConfig) -> "MedicalViT":
-    """Factory: builds backbone and optionally injects LoRA adapters."""
+    """Factory: builds backbone and optionally injects LoRA adapters.
+
+    When use_lora=True, ModuleValidator.fix() is called on the BASE model before
+    PEFT wraps it. After injection, frozen backbone layers are invisible to Opacus
+    (requires_grad=False), so only the adapter weights receive DP noise.
+    """
     model = MedicalViT(cfg)
 
     if cfg.model.use_lora:
-        # Month 3+: inject LoRA adapters into attention query/value projections
         from peft import LoraConfig, get_peft_model
 
-        # No task_type — creates a bare PeftModel with plain suffix matching,
-        # which is correct for ViT (not natively supported by PEFT task wrappers).
+        # ModuleValidator.fix() is intentionally NOT called before LoRA injection:
+        # fix() renames ViT attention sub-modules (e.g. replaces nn.Linear "query"
+        # with a DP wrapper), which causes PEFT suffix-matching to fail.
+        # With LoRA the backbone is frozen (requires_grad=False); only the adapter
+        # nn.Linear layers receive DP noise, and those are trivially Opacus-compatible.
+
+        # No task_type: bare PeftModel with suffix matching, correct for ViT
+        # (not natively supported by PEFT task-specific wrappers).
         lora_cfg = LoraConfig(
             r=cfg.model.lora_r,
             lora_alpha=cfg.model.lora_alpha,
@@ -109,10 +119,11 @@ def build_model(cfg: DictConfig) -> "MedicalViT":
         model.vit = get_peft_model(model.vit, lora_cfg)
         trainable, total = _count_parameters(model)
         logger.info(
-            "LoRA injected: trainable %d / %d params (%.2f%%)",
+            "LoRA injected: trainable %d / %d params (%.4f%%, %.0fx communication reduction)",
             trainable,
             total,
             100 * trainable / total,
+            total / max(trainable, 1),
         )
     else:
         trainable, total = _count_parameters(model)

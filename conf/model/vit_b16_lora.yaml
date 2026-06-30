@@ -1,0 +1,10 @@
+name: "vit_b16_lora"
+hf_model_id: "google/vit-base-patch16-224"
+pretrained: true
+use_lora: true
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+# Targets q_proj/v_proj in all 12 ViT-B attention blocks (transformers 4.40+ naming).
+# Trainable params: ~0.6M vs 85.8M total — ~143x communication reduction.
+lora_target_modules: ["q_proj", "v_proj"]

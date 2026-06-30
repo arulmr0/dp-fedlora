@@ -7,4 +7,5 @@ use_lora: false
 lora_r: 16
 lora_alpha: 32
 lora_dropout: 0.05
+# transformers 4.40+ ViT uses q_proj/v_proj (matches LLaMA-style naming in new arch)
 lora_target_modules: ["q_proj", "v_proj"]

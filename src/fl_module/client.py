@@ -87,13 +87,19 @@ class MedMNISTClient:
         self.device = device
         self.multilabel = cfg.dataset.get("multilabel", False)
 
-        # Fix Opacus-incompatible layers (e.g., certain norm variants) once at init
         if cfg.privacy.enabled:
             from opacus.validators import ModuleValidator
-            model = ModuleValidator.fix(model)
-            errors = ModuleValidator.validate(model, strict=False)
-            if errors:
-                raise RuntimeError(f"Opacus-incompatible layers remain: {errors}")
+            if model._lora_active():
+                # Backbone was already fixed in build_model() before LoRA injection.
+                # Opacus hooks only modules whose leaf params have requires_grad=True;
+                # frozen backbone layers are skipped automatically.
+                pass
+            else:
+                # Full fine-tuning: fix incompatible norm layers and validate.
+                model = ModuleValidator.fix(model)
+                errors = ModuleValidator.validate(model, strict=False)
+                if errors:
+                    raise RuntimeError(f"Opacus-incompatible layers remain: {errors}")
 
         self.model = model
         self.model.to(device)
