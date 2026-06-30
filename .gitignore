@@ -1,0 +1,35 @@
+# Virtual environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Hydra / experiment outputs
+outputs/
+multirun/
+
+# Data (downloaded by medmnist; reproducible from code)
+data/
+
+# HuggingFace cache
+.cache/
+
+# Editor / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Model checkpoints and result files (outputs/ covers experiment runs;
+# root-level *.pt / results.json are stray test artefacts)
+*.pt
+results.json
+
+# Distribution / build
+dist/
+build/
+*.egg-info/

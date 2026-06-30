@@ -1,0 +1,24 @@
+defaults:
+  - dataset: pathmnist
+  - model: vit_b16
+  - fl: fedavg
+  - privacy: none
+  - _self_
+
+experiment:
+  name: "fedavg_baseline"
+  seed: 42
+  output_dir: "outputs/${experiment.name}"
+
+training:
+  num_rounds: 20
+  local_epochs: 3
+  batch_size: 32
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-4
+  # Set >0 to limit batches per client per epoch (fast sanity check on CPU)
+  fast_dev_run: 0
+
+hydra:
+  run:
+    dir: outputs/${experiment.name}/${now:%Y-%m-%d_%H-%M-%S}

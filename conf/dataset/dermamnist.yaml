@@ -1,0 +1,8 @@
+name: "dermamnist"
+num_classes: 7
+img_size: 224
+num_clients: 10
+alpha: 0.5
+download: true
+data_dir: "data"
+val_split: 0.1

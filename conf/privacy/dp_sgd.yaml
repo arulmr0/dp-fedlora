@@ -1,0 +1,10 @@
+enabled: true
+# Gradient clipping bound
+max_grad_norm: 1.0
+# Noise scale — increase for stronger privacy, decrease for better accuracy
+noise_multiplier: 1.1
+# Privacy budget target (used for epsilon reporting only in Month 1)
+target_epsilon: 8.0
+target_delta: 1.0e-5
+# Accountant type: "rdp" (Rényi DP, tighter) or "gdp" (Gaussian DP)
+accountant: "rdp"

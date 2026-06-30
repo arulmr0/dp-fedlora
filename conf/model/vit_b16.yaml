@@ -1,0 +1,10 @@
+name: "vit_b16"
+# HuggingFace model ID — switch to BiomedCLIP in Month 3
+hf_model_id: "google/vit-base-patch16-224"
+pretrained: true
+# LoRA config (Month 3+; ignored when use_lora=false)
+use_lora: false
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target_modules: ["q_proj", "v_proj"]
