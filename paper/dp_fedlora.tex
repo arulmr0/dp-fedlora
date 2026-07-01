@@ -21,7 +21,7 @@
 
 % Convenience macros
 \newcommand{\method}{DP-FedLoRA}
-\newcommand{\eps}{\varepsilon}
+\renewcommand{\eps}{\varepsilon}
 \newcommand{\noise}{\sigma}
 \newcommand{\clip}{C}
 \newcommand{\lora}{\textsc{LoRA}}
@@ -289,7 +289,7 @@ multiplier $\noise$, gradient clip norm $\clip$, and sampling rate
 $q = B/n_i$, for $T$ rounds.
 Under the Gaussian mechanism with the RDP accountant:
 \[
-  \eps_{\method{}} = \eps_{\text{DP-FedAvg}}
+  \eps_{\text{\method{}}} = \eps_{\text{DP-FedAvg}}
 \]
 at identical $(\noise, \clip, q, S, T, \delta)$.
 \end{theorem}
@@ -320,7 +320,7 @@ This is an ablation direction for the GPU experiments.
 Under the same $(\eps, \delta)$ guarantee, \method{} injects expected
 noise energy:
 \[
-  \mathbb{E}[\|\boldsymbol{\eta}_{\method{}}\|_2^2]
+  \mathbb{E}[\|\boldsymbol{\eta}_{\text{\method{}}}\|_2^2]
     = \noise^2 \clip^2 k
   \quad \text{vs.} \quad
   \mathbb{E}[\|\boldsymbol{\eta}_{\text{full}}\|_2^2]
@@ -334,7 +334,7 @@ $r{=}16$ adapters ($k{=}589{,}824$, $d{=}85{,}805{,}577$).
 \label{cor:frontier}
 \method{} simultaneously achieves:
 \begin{enumerate}
-  \item \emph{Identical privacy:} $\eps_{\method{}} = \eps_{\text{DP-FedAvg}}$
+  \item \emph{Identical privacy:} $\eps_{\text{\method{}}} = \eps_{\text{DP-FedAvg}}$
         (Theorem~\ref{thm:privacy}).
   \item \emph{Lower noise floor:} Expected noise energy $145{\times}$ smaller
         (Proposition~\ref{prop:noise}), yielding a proportionally lower
@@ -587,7 +587,7 @@ guarantees to full-model DP-FedAvg at the same noise multiplier, while
 injecting $145{\times}$ less noise energy and transmitting $145{\times}$
 less data per round.
 CPU experiments confirm the efficiency gains ($1.8{\times}$ speedup,
-$143{\times}$ communication reduction) and establish the no-DP upper
+$145{\times}$ communication reduction) and establish the no-DP upper
 bound (AUC $0.997$).
 GPU experiments completing the utility comparison are the next step.
 We release all code at \url{https://github.com/arulmr0/dp-fedlora}.
