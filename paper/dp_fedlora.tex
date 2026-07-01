@@ -1,4 +1,4 @@
-\documentclass{article}
+﻿\documentclass{article}
 \usepackage{iclr2026_conference,times}
 \input{math_commands.tex}
 
@@ -81,13 +81,13 @@ to achieve the diversity needed for generalisation.
 Hospitals cannot share raw patient data: HIPAA, GDPR, and cross-border
 transfer restrictions prohibit centralisation.
 Federated learning (FL) is the standard answer --- clients train locally
-and share only model updates \citep{PLACEHOLDER_mcmahan2017communication}.
+and share only model updates \citep{mcmahan2017communication}.
 The problem is that gradient sharing is not private: gradient inversion
 attacks reconstruct patient images directly from shared
-updates \citep{PLACEHOLDER_sensors2025gradattack}.
+updates \citep{zheng2025sensitivity}.
 
 The standard defence, differentially private stochastic gradient descent
-(DP-SGD) \citep{PLACEHOLDER_abadi2016deep}, adds calibrated Gaussian noise
+(DP-SGD) \citep{abadi2016deep}, adds calibrated Gaussian noise
 to gradients before aggregation.
 However, applying DP-SGD to a full vision transformer at each round is
 doubly expensive.
@@ -96,17 +96,17 @@ parameters, transmitted by every client every round.
 \emph{Utility loss} is severe: at clinically conservative noise levels
 ($\noise{=}1.1$, $\eps \approx 2.6$), we observe AUC collapse from $0.997$
 to $0.534$ on PathMNIST, consistent with the $74$-study scoping review by
-\citet{PLACEHOLDER_npjdm2025dp} showing substantial accuracy degradation
+\citet{mohammadi2025differential} showing substantial accuracy degradation
 at $\eps \lesssim 10$ on small heterogeneous cohorts.
 
 The field has addressed the communication problem independently via
 parameter-efficient fine-tuning (PEFT): LoRA
-\citep{PLACEHOLDER_hu2022lora} freezes the backbone and trains small
+\citep{hu2022lora} freezes the backbone and trains small
 low-rank matrices, reducing transmitted gradients by two orders of
 magnitude.
 Informal adapter-based FL has appeared in biomedical NLP
-\citep{PLACEHOLDER_biodatamining2024fedmed}, but without privacy proofs.
-\citet{PLACEHOLDER_biodatamining2024fedmed} explicitly identifies formal privacy
+\citep{li2024federated}, but without privacy proofs.
+\citet{li2024federated} explicitly identifies formal privacy
 analysis for federated PEFT as an open problem.
 
 \textbf{No existing work analyses whether applying DP noise only to
@@ -157,28 +157,28 @@ We close this gap.
 
 \subsection{Federated Learning and Non-IID Data}
 
-FedAvg \citep{PLACEHOLDER_mcmahan2017communication} aggregates client
+FedAvg \citep{mcmahan2017communication} aggregates client
 updates by weighted averaging.
 In healthcare, site-level heterogeneity arises from scanner variation,
 patient demographics, and disease prevalence.
 We model this as a Dirichlet($\alpha$) label distribution
-\citep{PLACEHOLDER_li2020fedprox}, where small $\alpha$ creates severe
+\citep{li2020fedprox}, where small $\alpha$ creates severe
 non-IID partitions.
 
 \subsection{Differential Privacy and the RDP Accountant}
 
 A randomised mechanism $\mathcal{M}$ satisfies $(\eps, \delta)$-DP
-\citep{PLACEHOLDER_abadi2016deep} if for all adjacent datasets $D, D'$
+\citep{abadi2016deep} if for all adjacent datasets $D, D'$
 and measurable output sets $S$:
 \[
   \Pr[\mathcal{M}(D) \in S] \leq e^{\eps} \Pr[\mathcal{M}(D') \in S]
   + \delta.
 \]
-Rényi DP (RDP) \citep{PLACEHOLDER_mironov2017renyi} enables tight
+Rényi DP (RDP) \citep{mironov2017renyi} enables tight
 composition via the moments accountant.
 For the subsampled Gaussian mechanism with noise multiplier $\noise$ and
 sampling rate $q$, the per-step RDP at order $\alpha$ is
-\citep{PLACEHOLDER_wang2019subsampled}:
+\citep{wang2019subsampled}:
 \[
   \eps_{\text{RDP}}(\alpha) \approx \frac{\alpha q^2}{2\noise^2}
   + O(q^3).
@@ -189,7 +189,7 @@ $\eps = \min_{\alpha > 1} \left[ \eps_{\text{RDP}}(\alpha) +
 
 \subsection{Low-Rank Adaptation (LoRA)}
 
-LoRA \citep{PLACEHOLDER_hu2022lora} decomposes weight updates as
+LoRA \citep{hu2022lora} decomposes weight updates as
 $\Delta W = BA$ where $B \in \mathbb{R}^{d_{\text{out}} \times r}$,
 $A \in \mathbb{R}^{r \times d_{\text{in}}}$, and $r \ll \min(d_{\text{in}},
 d_{\text{out}})$.
@@ -279,7 +279,7 @@ subadditivity of RDP.
 
 We state three results.
 Proofs follow directly from the Rényi DP accountant
-\citep{PLACEHOLDER_mironov2017renyi,PLACEHOLDER_wang2019subsampled}.
+\citep{mironov2017renyi,wang2019subsampled}.
 All claims are verified numerically in \texttt{theory/rdp\_analysis.py}.
 
 \begin{theorem}[Privacy Equivalence]
@@ -379,12 +379,12 @@ path to recover utility at a looser budget.
 \subsection{Setup}
 
 \paragraph{Dataset.}
-PathMNIST \citep{PLACEHOLDER_yang2023medmnist}: $89{,}996$ colorectal
+PathMNIST \citep{yang2023medmnist}: $89{,}996$ colorectal
 tissue patches (9 classes), distributed across clients via Dirichlet($\alpha$)
 label partitioning with $\alpha \in \{0.1, 0.5, 1.0\}$.
 
 \paragraph{Model.}
-ViT-B/16 \citep{PLACEHOLDER_dosovitskiy2021image} pretrained on ImageNet,
+ViT-B/16 \citep{dosovitskiy2021image} pretrained on ImageNet,
 $85.8$\,M parameters.
 LoRA adapters applied to \texttt{q\_proj} and \texttt{v\_proj} in all $12$
 attention layers with $r{=}16$, $\alpha_{\text{LoRA}}{=}32$,
@@ -410,7 +410,7 @@ per-round training time (seconds/round, CPU).
 
 \paragraph{Framework.}
 PyTorch + HuggingFace Transformers + PEFT (LoRA) + Opacus (DP-SGD) +
-Hydra (configuration) \citep{PLACEHOLDER_yousefpour2021opacus}.
+Hydra (configuration) \citep{yousefpour2021opacus}.
 
 \subsection{Experiment 1: Convergence under No-DP Baseline}
 \label{sec:exp:nodp}
@@ -514,33 +514,33 @@ Rank $r \in \{4, 8, 16, 32\}$; noise $\noise \in \{0.67, 0.8, 1.1, 1.5\}$
 \label{sec:related}
 
 \paragraph{DP in federated learning.}
-\citet{PLACEHOLDER_abadi2016deep} introduced DP-SGD; federated extensions
-apply it per client \citep{PLACEHOLDER_mcmahan2017communication}.
-\citet{PLACEHOLDER_levy2021learning} analyse user-level privacy in FL.
+\citet{abadi2016deep} introduced DP-SGD; federated extensions
+apply it per client \citep{mcmahan2017communication}.
+\citet{levy2021learning} analyse user-level privacy in FL.
 Non-IID convergence under DP is studied in
-\citep{PLACEHOLDER_sciencedirect2025fednga} independently of PEFT.
+\citep{fednga2024} independently of PEFT.
 No prior work analyses DP specifically on adapter parameters in a federated
 setting.
 
 \paragraph{PEFT for federated learning.}
-LoRA \citep{PLACEHOLDER_hu2022lora} reduces communication in centralised
+LoRA \citep{hu2022lora} reduces communication in centralised
 fine-tuning.
 Adapter-based FL has been applied informally in biomedical NLP
-\citep{PLACEHOLDER_biodatamining2024fedmed} but without privacy guarantees.
-\citet{PLACEHOLDER_biodatamining2024fedmed} explicitly identifies formal privacy
+\citep{li2024federated} but without privacy guarantees.
+\citet{li2024federated} explicitly identifies formal privacy
 analysis for federated PEFT as open.
 \method{} provides the first formal analysis in the vision domain.
 
 \paragraph{DP for medical imaging.}
-\citet{PLACEHOLDER_npjdm2025dp} review 74 DP medical imaging studies and
+\citet{mohammadi2025differential} review 74 DP medical imaging studies and
 find $\eps \approx 10$ clinically tolerable; $\eps \approx 1$ causes
 substantial degradation on small cohorts.
 No study applies DP to adapter-only gradients.
 
 \paragraph{Vision transformers in federated healthcare.}
-ViT \citep{PLACEHOLDER_dosovitskiy2021image} is the dominant backbone.
+ViT \citep{dosovitskiy2021image} is the dominant backbone.
 Our framework targets ViT-B/16 with MedMNIST
-\citep{PLACEHOLDER_yang2023medmnist}; BiomedCLIP or BioViL-T are
+\citep{yang2023medmnist}; BiomedCLIP or BioViL-T are
 future targets.
 
 % ============================================================
