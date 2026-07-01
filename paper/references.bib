@@ -141,10 +141,6 @@
 }
 
 % ---- FL for healthcare / VLMs ----
-% NOTE: PLACEHOLDER_biodatamining2024fedmed and PLACEHOLDER_arxiv2405fedlm
-% point to the SAME paper. The BioData Mining journal version is canonical.
-% Both cite keys are retained to avoid breaking dp_fedlora.tex; merge at revision.
-
 @article{PLACEHOLDER_biodatamining2024fedmed,
   author    = {Li, Xingyu and Peng, Lu and Wang, Yuping and Zhang, Weihua},
   title     = {Open Challenges and Opportunities in Federated Foundation Models
@@ -161,26 +157,13 @@
   % VERIFIED 2026-07-01: BioData Mining 2024, DOI confirmed via BioMedCentral.
   % CORRECTED: original title ("Federated Fine-Tuning of Biomedical Large Language
   % Models") and [Authors TBD] were wrong.
-  % DUPLICATE NOTE: same paper as PLACEHOLDER_arxiv2405fedlm (arXiv:2405.06784).
+  % arXiv:2405.06784 is the preprint of this paper.
 }
 
-@article{PLACEHOLDER_arxiv2405fedlm,
-  author    = {Li, Xingyu and Peng, Lu and Wang, Yuping and Zhang, Weihua},
-  title     = {Open Challenges and Opportunities in Federated Foundation Models
-               Towards Biomedical Healthcare},
-  journal   = {{BioData Mining}},
-  volume    = {17},
-  number    = {1},
-  pages     = {53},
-  year      = {2024},
-  doi       = {10.1186/s13040-024-00414-9},
-  eprint    = {2405.06784},
-  archivePrefix = {arXiv},
-  url       = {https://arxiv.org/abs/2405.06784},
-  % VERIFIED 2026-07-01: Same paper as PLACEHOLDER_biodatamining2024fedmed.
-  % CORRECTED: original title was truncated. Authors added.
-  % ACTION REQUIRED: consolidate to one cite key before submission.
-}
+% PLACEHOLDER_arxiv2405fedlm removed 2026-07-01 -- duplicate of
+% PLACEHOLDER_biodatamining2024fedmed (same paper, same DOI).
+% All \cite{PLACEHOLDER_arxiv2405fedlm} in dp_fedlora.tex replaced
+% with \cite{PLACEHOLDER_biodatamining2024fedmed}.
 
 % ---- Gradient Inversion / Privacy Attacks ----
 
