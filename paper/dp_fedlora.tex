@@ -517,8 +517,10 @@ Rank $r \in \{4, 8, 16, 32\}$; noise $\noise \in \{0.67, 0.8, 1.1, 1.5\}$
 \citet{abadi2016deep} introduced DP-SGD; federated extensions
 apply it per client \citep{mcmahan2017communication}.
 \citet{levy2021learning} analyse user-level privacy in FL.
-Non-IID convergence under DP is studied in
-\citep{fednga2024} independently of PEFT.
+Non-IID convergence in FL is characterised in
+\citet{karimireddy2020scaffold} independently of DP or PEFT;
+their analysis forms the convergence backbone for our
+Theorem~\ref{thm:convergence} sketch.
 No prior work analyses DP specifically on adapter parameters in a federated
 setting.
 
@@ -590,7 +592,7 @@ CPU experiments confirm the efficiency gains ($1.8{\times}$ speedup,
 $145{\times}$ communication reduction) and establish the no-DP upper
 bound (AUC $0.997$).
 GPU experiments completing the utility comparison are the next step.
-We release all code at \url{https://github.com/arulmr0/dp-fedlora}.
+Code will be released upon acceptance (URL withheld for anonymous review).
 
 % ============================================================
 \bibliography{references}

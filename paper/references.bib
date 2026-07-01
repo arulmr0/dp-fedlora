@@ -1,11 +1,12 @@
-﻿% ============================================================
+% ============================================================
 % DP-FedLoRA bibliography
-% STATUS: Verified 2026-07-01 via WebSearch + DBLP + DOI lookup.
-% Remaining issues noted inline.
+% Verified 2026-07-01 via WebSearch / DOI / arXiv / DBLP.
+% Inline comments moved outside entry blocks (BibTeX rejects % inside entries).
 % ============================================================
 
 % ---- Differential Privacy (core) ----
 
+% VERIFIED: ACM DL doi:10.1145/2976749.2978318
 @inproceedings{abadi2016deep,
   author    = {Abadi, Mart{\'i}n and Chu, Andy and Goodfellow, Ian and
                McMahan, H. Brendan and Mironov, Ilya and Talwar, Kunal
@@ -16,9 +17,9 @@
   pages     = {308--318},
   year      = {2016},
   doi       = {10.1145/2976749.2978318},
-  % VERIFIED 2026-07-01: ACM DL https://dl.acm.org/doi/10.1145/2976749.2978318
 }
 
+% VERIFIED: IEEE Xplore doi:10.1109/CSF.2017.11
 @inproceedings{mironov2017renyi,
   author    = {Mironov, Ilya},
   title     = {R{\'e}nyi Differential Privacy},
@@ -26,9 +27,9 @@
   pages     = {263--275},
   year      = {2017},
   doi       = {10.1109/CSF.2017.11},
-  % VERIFIED 2026-07-01: IEEE Xplore DOI confirmed
 }
 
+% VERIFIED: PMLR v89 p1226-1235; JPC journal doi:10.29012/jpc.723
 @inproceedings{wang2019subsampled,
   author    = {Wang, Yu-Xiang and Balle, Borja and Kasiviswanathan, Shiva Prasad},
   title     = {Subsampled R{\'e}nyi Differential Privacy and Analytical Moments Accountant},
@@ -39,11 +40,11 @@
   pages     = {1226--1235},
   year      = {2019},
   url       = {https://proceedings.mlr.press/v89/wang19b.html},
-  % VERIFIED 2026-07-01: PMLR v89 confirmed; JPC journal version DOI:10.29012/jpc.723
 }
 
 % ---- Federated Learning ----
 
+% VERIFIED: PMLR v54 p1273-1282
 @inproceedings{mcmahan2017communication,
   author    = {McMahan, H. Brendan and Moore, Eider and Ramage, Daniel and
                Hampson, Seth and Ag{\"u}era y Arcas, Blaise},
@@ -56,9 +57,9 @@
   pages     = {1273--1282},
   year      = {2017},
   url       = {https://proceedings.mlr.press/v54/mcmahan17a.html},
-  % VERIFIED 2026-07-01: PMLR v54 confirmed
 }
 
+% VERIFIED: MLSys 2020 proceedings p429-450
 @inproceedings{li2020fedprox,
   author    = {Li, Tian and Sahu, Anit Kumar and Zaheer, Manzil and
                Sanjabi, Maziar and Talwalkar, Ameet and Smith, Virginia},
@@ -67,11 +68,12 @@
   pages     = {429--450},
   year      = {2020},
   url       = {https://proceedings.mlsys.org/paper/2020/hash/1f5fe83998a09396ebe6477d9475ba0c-Abstract.html},
-  % VERIFIED 2026-07-01: MLSys 2020 proceedings confirmed
 }
 
 % ---- DP + Federated Learning ----
 
+% VERIFIED: NeurIPS 2021 vol34 p12466-12479, arXiv:2102.11845
+% CORRECTED: original had wrong authors (McMahan/Ramage/Steinhardt/Thakkar)
 @inproceedings{levy2021learning,
   author    = {Levy, Daniel and Sun, Ziteng and Amin, Kareem and Kale, Satyen
                and Kulesza, Alex and Mohri, Mehryar and Suresh, Ananda Theertha},
@@ -83,13 +85,11 @@
   eprint    = {2102.11845},
   archivePrefix = {arXiv},
   url       = {https://proceedings.neurips.cc/paper/2021/hash/67e235e7f2fa8800d8375409b566e6b6-Abstract.html},
-  % VERIFIED 2026-07-01: NeurIPS 2021 confirmed. arXiv:2102.11845.
-  % CORRECTED: original bib had entirely wrong authors (McMahan, Ramage, Steinhardt,
-  % Thakkar) -- those are different papers. Correct authors verified via NeurIPS page.
 }
 
 % ---- LoRA / PEFT ----
 
+% VERIFIED: ICLR 2022 OpenReview nZeVKeeFYf9, arXiv:2106.09685
 @inproceedings{hu2022lora,
   author    = {Hu, Edward J. and Shen, Yelong and Wallis, Phillip and
                Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and
@@ -100,11 +100,11 @@
   eprint    = {2106.09685},
   archivePrefix = {arXiv},
   url       = {https://openreview.net/forum?id=nZeVKeeFYf9},
-  % VERIFIED 2026-07-01: ICLR 2022 OpenReview confirmed. arXiv:2106.09685.
 }
 
 % ---- Vision Transformers ----
 
+% VERIFIED: ICLR 2021 OpenReview YicbFdNTTy, arXiv:2010.11929
 @inproceedings{dosovitskiy2021image,
   author    = {Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander
                and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas
@@ -117,15 +117,16 @@
   eprint    = {2010.11929},
   archivePrefix = {arXiv},
   url       = {https://openreview.net/forum?id=YicbFdNTTy},
-  % VERIFIED 2026-07-01: ICLR 2021 OpenReview confirmed. arXiv:2010.11929.
 }
 
 % ---- Medical Imaging / Privacy ----
 
+% VERIFIED: npj Digital Medicine 2025 doi:10.1038/s41746-025-02280-z, arXiv:2506.00660
+% CORRECTED: original title/authors were wrong placeholders
 @article{mohammadi2025differential,
   author    = {Mohammadi, Marziyeh and Vejdanihemmat, Mohsen and Lotfinia,
                Mahshad and Rusu, Mirabela and Truhn, Daniel and Maier, Andreas
-               and Tayebi Arasteh, Soroosh},
+               and {Tayebi Arasteh}, Soroosh},
   title     = {Differential Privacy for Medical Deep Learning: Methods,
                Tradeoffs, and Deployment Implications},
   journal   = {npj Digital Medicine},
@@ -134,13 +135,13 @@
   eprint    = {2506.00660},
   archivePrefix = {arXiv},
   url       = {https://www.nature.com/articles/s41746-025-02280-z},
-  % VERIFIED 2026-07-01: npj Digital Medicine 2025, DOI confirmed via Nature.com
-  % CORRECTED: original bib title ("A Scoping Review of 74 Studies") and [Authors TBD]
-  % were wrong. Correct title and all 7 authors verified via arXiv:2506.00660 + PMC.
-  % Paper reviews 74 eligible DP medical imaging studies (abstract confirmed).
 }
 
 % ---- FL for healthcare / VLMs ----
+
+% VERIFIED: BioData Mining 17:53 (2024) doi:10.1186/s13040-024-00414-9, arXiv:2405.06784
+% CORRECTED: original title/authors were wrong placeholders
+% NOTE: formerly had a duplicate entry (arxiv2405fedlm); removed 2026-07-01
 @article{li2024federated,
   author    = {Li, Xingyu and Peng, Lu and Wang, Yuping and Zhang, Weihua},
   title     = {Open Challenges and Opportunities in Federated Foundation Models
@@ -154,19 +155,12 @@
   eprint    = {2405.06784},
   archivePrefix = {arXiv},
   url       = {https://biodatamining.biomedcentral.com/articles/10.1186/s13040-024-00414-9},
-  % VERIFIED 2026-07-01: BioData Mining 2024, DOI confirmed via BioMedCentral.
-  % CORRECTED: original title ("Federated Fine-Tuning of Biomedical Large Language
-  % Models") and [Authors TBD] were wrong.
-  % arXiv:2405.06784 is the preprint of this paper.
 }
-
-% PLACEHOLDER_arxiv2405fedlm removed 2026-07-01 -- duplicate of
-% li2024federated (same paper, same DOI).
-% All \cite{PLACEHOLDER_arxiv2405fedlm} in dp_fedlora.tex replaced
-% with \cite{li2024federated}.
 
 % ---- Gradient Inversion / Privacy Attacks ----
 
+% VERIFIED: Sensors 25(9):2847 (2025) doi:10.3390/s25092847
+% CORRECTED: original title/authors were wrong placeholders
 @article{zheng2025sensitivity,
   author    = {Zheng, Lele and Cao, Yang and Yoshikawa, Masatoshi and
                Shen, Yulong and Rashed, Essam A. and Taura, Kenjiro and
@@ -180,30 +174,31 @@
   year      = {2025},
   doi       = {10.3390/s25092847},
   url       = {https://www.mdpi.com/1424-8220/25/9/2847},
-  % VERIFIED 2026-07-01: Sensors 25(9):2847, DOI confirmed via MDPI.
-  % CORRECTED: original title ("...for Federated Learning") and [Authors TBD] wrong.
-  % Actual title is "...for Federated Medical Imaging". All 8 authors added.
 }
 
 % ---- Non-IID Federated Learning ----
 
-@article{fednga2024,
-  author    = {[Authors TBD]},
-  title     = {Byzantine-Resilient Federated Learning Employing Normalized
-               Gradients on Non-{IID} Datasets},
-  journal   = {[Journal TBD -- verify publication of arXiv:2408.09539]},
-  year      = {2024},
-  eprint    = {2408.09539},
+% VERIFIED: PMLR v119 p5132-5143; ICML 2020; arXiv:1910.06378
+@inproceedings{karimireddy2020scaffold,
+  author    = {Karimireddy, Sai Praneeth and Kale, Satyen and Mohri, Mehryar
+               and Reddi, Sashank and Stich, Sebastian and
+               Suresh, Ananda Theertha},
+  title     = {{SCAFFOLD}: Stochastic Controlled Averaging for Federated
+               Learning},
+  booktitle = {Proceedings of the 37th International Conference on Machine
+               Learning ({ICML})},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {119},
+  pages     = {5132--5143},
+  year      = {2020},
+  eprint    = {1910.06378},
   archivePrefix = {arXiv},
-  url       = {https://arxiv.org/abs/2408.09539},
-  % NOT VERIFIED as ScienceDirect 2025: searched but found only arXiv:2408.09539
-  % (2024 preprint). Could not confirm journal publication.
-  % ACTION REQUIRED before submission: verify if published in journal, or replace
-  % with a confirmed non-IID FL convergence reference (e.g., FedProx or SCAFFOLD).
+  url       = {https://proceedings.mlr.press/v119/karimireddy20a.html},
 }
 
 % ---- MedMNIST ----
 
+% VERIFIED: Scientific Data 10:41 (2023), arXiv:2110.14795
 @article{yang2023medmnist,
   author    = {Yang, Jiancheng and Shi, Rui and Wei, Donglai and Liu, Zequan
                and Zhao, Lin and Ke, Bilian and Pfister, Hanspeter and Ni, Bingbing},
@@ -217,11 +212,13 @@
   eprint    = {2110.14795},
   archivePrefix = {arXiv},
   url       = {https://www.nature.com/articles/s41597-022-01721-8},
-  % VERIFIED 2026-07-01: Scientific Data 10:41 (2023). arXiv:2110.14795.
 }
 
 % ---- Opacus ----
 
+% VERIFIED: NeurIPS 2021 PriML workshop, arXiv:2109.12298
+% CORRECTED: original had wrong spellings (Shiloach->Shilov, Paugh->Testuggine)
+%            and wrong co-authors (Balle, duplicate Ghazi, Kairouz, McMahan)
 @inproceedings{yousefpour2021opacus,
   author    = {Yousefpour, Ashkan and Shilov, Igor and Sablayrolles, Alexandre
                and Testuggine, Davide and Prasad, Karthik and Malek, Mani and
@@ -233,8 +230,4 @@
   eprint    = {2109.12298},
   archivePrefix = {arXiv},
   url       = {https://arxiv.org/abs/2109.12298},
-  % VERIFIED 2026-07-01: arXiv:2109.12298 confirmed, NeurIPS 2021 PriML workshop.
-  % CORRECTED: original bib had wrong spellings (Shiloach→Shilov, Paugh→Testuggine),
-  % wrong co-authors (Balle, Ghazi×2, Kairouz, McMahan), and a duplicate Ghazi entry.
-  % All 12 correct authors verified via arXiv abstract page.
 }

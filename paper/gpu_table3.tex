@@ -1,0 +1,18 @@
+\begin{table}[h]
+\centering
+\caption{GPU full-scale comparison (20 rounds, 10 clients, PathMNIST, $\noise{=}1.1$, $\clip{=}1.0$, $\delta{=}10^{-5}$).}
+\label{tab:gpu}
+\begin{tabular}{lcccc}
+\toprule
+Method & $\alpha$ & Test AUC & $\eps$ & Comm/round \\
+\midrule
+FedAvg (no DP) & 0.5 & {\color{red}MISSING} & --- & 343 MB \\
+FedAvg + DP-SGD & 0.1 & {\color{red}MISSING} & --- & 343 MB \\
+FedAvg + DP-SGD & 0.5 & {\color{red}MISSING} & --- & 343 MB \\
+FedAvg + DP-SGD & 1.0 & {\color{red}MISSING} & --- & 343 MB \\
+\method{} ($r{=}16$) & 0.1 & {\color{red}MISSING} & --- & \textbf{2.4 MB} \\
+\method{} ($r{=}16$) & 0.5 & {\color{red}MISSING} & --- & \textbf{2.4 MB} \\
+\method{} ($r{=}16$) & 1.0 & {\color{red}MISSING} & --- & \textbf{2.4 MB} \\
+\bottomrule
+\end{tabular}
+\end{table}
