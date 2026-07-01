@@ -1,0 +1,117 @@
+% fig1.tex  --  DP-FedLoRA method overview (Figure 1)
+% Requires \usepackage{tikz} + \usetikzlibrary{arrows.meta} in preamble.
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  >=Stealth,
+  % ---- node styles ----
+  client/.style={
+    draw=blue!55, fill=blue!4, rounded corners=5pt,
+    minimum width=3.0cm, minimum height=4.0cm,
+    inner sep=3pt
+  },
+  frozenbox/.style={
+    draw=gray!55, fill=gray!9, rounded corners=3pt,
+    minimum width=2.7cm, minimum height=0.7cm,
+    align=center, font=\scriptsize, inner sep=3pt
+  },
+  lorabox/.style={
+    draw=orange!65, fill=orange!8, rounded corners=3pt,
+    minimum width=2.7cm, minimum height=0.7cm,
+    align=center, font=\scriptsize, inner sep=3pt
+  },
+  noisebox/.style={
+    draw=red!50, fill=red!5, rounded corners=3pt,
+    minimum width=2.7cm, minimum height=0.7cm,
+    align=center, font=\scriptsize, inner sep=3pt
+  },
+  srvbox/.style={
+    draw=teal!60!black, fill=teal!5, rounded corners=5pt,
+    minimum width=11.5cm, minimum height=1.3cm,
+    align=center
+  },
+  keyanno/.style={
+    draw=purple!45, fill=purple!4, rounded corners=4pt,
+    align=center, font=\scriptsize, inner sep=5pt,
+    text width=11.0cm
+  },
+]
+
+% ---- Site i (x = -3.6) ----
+\node[client] (c1) at (-3.6, 0) {};
+\node[font=\scriptsize\bfseries] at (-3.6, 2.10) {Site $i$};
+\node[frozenbox] at (-3.6,  1.10) {ViT-B/16 $\phi$\\\textcolor{gray!70!black}{\footnotesize frozen}};
+\node[lorabox]   at (-3.6,  0.20) {\lora{} $\{A_l,B_l\}_{l=1}^L$\\\textcolor{orange!80!black}{\footnotesize trainable $\theta$}};
+\node[noisebox]  at (-3.6, -0.75) {DP-SGD\\ $+\;\mathcal{N}(0,\sigma^2C^2\mathbf{I}_k)$};
+\node[font=\tiny,color=blue!60,align=center] at (-3.6,-1.70)
+  {$\Delta\theta_i$\;\;2.4\,MB};
+
+% ---- Site j (x = 0) ----
+\node[client] (c2) at (0, 0) {};
+\node[font=\scriptsize\bfseries] at (0, 2.10) {Site $j$};
+\node[frozenbox] at (0,  1.10) {ViT-B/16 $\phi$\\\textcolor{gray!70!black}{\footnotesize frozen}};
+\node[lorabox]   at (0,  0.20) {\lora{} $\{A_l,B_l\}_{l=1}^L$\\\textcolor{orange!80!black}{\footnotesize trainable $\theta$}};
+\node[noisebox]  at (0, -0.75) {DP-SGD\\ $+\;\mathcal{N}(0,\sigma^2C^2\mathbf{I}_k)$};
+\node[font=\tiny,color=blue!60,align=center] at (0,-1.70)
+  {$\Delta\theta_j$\;\;2.4\,MB};
+
+% ---- Ellipsis ----
+\node at (1.8, 0) {$\cdots$};
+
+% ---- Site N (x = 3.6) ----
+\node[client] (cn) at (3.6, 0) {};
+\node[font=\scriptsize\bfseries] at (3.6, 2.10) {Site $N$};
+\node[frozenbox] at (3.6,  1.10) {ViT-B/16 $\phi$\\\textcolor{gray!70!black}{\footnotesize frozen}};
+\node[lorabox]   at (3.6,  0.20) {\lora{} $\{A_l,B_l\}_{l=1}^L$\\\textcolor{orange!80!black}{\footnotesize trainable $\theta$}};
+\node[noisebox]  at (3.6, -0.75) {DP-SGD\\ $+\;\mathcal{N}(0,\sigma^2C^2\mathbf{I}_k)$};
+\node[font=\tiny,color=blue!60,align=center] at (3.6,-1.70)
+  {$\Delta\theta_N$\;\;2.4\,MB};
+
+% ---- Federated Server ----
+\node[srvbox] (srv) at (0, -3.3) {%
+  \textbf{Federated Server}\quad
+  $\theta^t \leftarrow \theta^{t-1} + \tfrac{1}{N}\textstyle\sum_{i=1}^{N}\Delta\theta_i$
+  \qquad
+  $\varepsilon^t \leftarrow \textsc{RdpAccountant}(\sigma,\,q,\,S{\cdot}t)$%
+};
+
+% ---- Upload arrows (solid blue) ----
+\draw[->, thick, blue!55] (c1.south) -- (-3.0, -2.65);
+\draw[->, thick, blue!55] (c2.south) -- ( 0.0, -2.65);
+\draw[->, thick, blue!55] (cn.south) -- ( 3.0, -2.65);
+
+% ---- Broadcast note ----
+\node[font=\tiny,color=teal!60!black] at (0,-4.10)
+  {broadcasts updated $\theta^t$ (adapter weights only) to all sites};
+
+% ---- Key annotation ----
+\node[keyanno] at (0,-4.90) {%
+  $k{=}589\,\text{K} \ll d{=}85.8\,\text{M}$ parameters
+  $\;\Rightarrow\;$ \emph{identical} $(\varepsilon,\delta)$-DP
+  to full-model DP-FedAvg\\[3pt]
+  $+\;145{\times}$ less injected noise energy\quad
+  $+\;145{\times}$ less communication per round%
+};
+
+\end{tikzpicture}
+\caption{%
+  \textbf{\method{} system overview.}
+  Each of $N$ hospital sites freezes the ViT-B/16 backbone
+  ($\phi$, $d{=}85.8$M parameters) and trains only the LoRA adapter matrices
+  $\theta{=}\{A_l,B_l\}_{l=1}^{L}$ ($k{=}589$K parameters, $0.69\%$ of $d$).
+  Opacus DP-SGD computes per-sample gradients and adds Gaussian noise
+  $\mathcal{N}(0,\sigma^2C^2\mathbf{I}_k)$ to adapter gradients only before
+  upload; the frozen backbone receives no noise.
+  Each site uploads a 2.4\,MB adapter delta (versus 343\,MB for full-model DP),
+  which the server aggregates via FedAvg.
+  Privacy is tracked per round using the RDP moments accountant and composed
+  across all $T$ rounds.
+  Because $k \ll d$, \method{} achieves the \emph{same}
+  $(\varepsilon,\delta)$-differential privacy as full-model DP-FedAvg at
+  identical $\sigma$, $C$, $q$, $S$ while injecting $145{\times}$ less noise
+  energy and transmitting $145{\times}$ less data per round
+  (Theorem~\ref{thm:privacy}; Proposition~\ref{prop:noise}).%
+}
+\label{fig:overview}
+\end{figure*}

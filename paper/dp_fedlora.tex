@@ -11,6 +11,8 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{microtype}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 
 % Theorem environments
 \newtheorem{theorem}{Theorem}
@@ -150,6 +152,8 @@ We close this gap.
     without adapters (AUC $0.534$); the GPU run is required to
     measure the recovery.}
 \end{enumerate}
+
+\input{fig1.tex}
 
 % ============================================================
 \section{Background}
@@ -487,16 +491,16 @@ but expected to recover at full data scale.
 
 \textbf{Commands (copy-paste):}
 \begin{verbatim}
-# Full-scale baselines
+# Full-scale baselines (see task_plan.md for full command list)
 uv run python pipeline/train.py experiment.name=fedavg_dp_alpha05
-uv run python pipeline/train.py model=vit_b16_lora privacy=dp_sgd \
-    experiment.name=fedlora_dp_alpha05
+uv run python pipeline/train.py model=vit_b16_lora \
+  privacy=dp_sgd experiment.name=fedlora_dp_alpha05
 
-# Non-IID sweep
-uv run python pipeline/train.py model=vit_b16_lora privacy=dp_sgd \
-    dataset.alpha=0.1 experiment.name=fedlora_dp_alpha01
-uv run python pipeline/train.py model=vit_b16_lora privacy=dp_sgd \
-    dataset.alpha=1.0 experiment.name=fedlora_dp_alpha10
+# Non-IID sweep (alpha=0.1, 1.0)
+uv run python pipeline/train.py model=vit_b16_lora \
+  privacy=dp_sgd dataset.alpha=0.1
+uv run python pipeline/train.py model=vit_b16_lora \
+  privacy=dp_sgd dataset.alpha=1.0
 \end{verbatim}
 
 \subsection{Experiment 4: Ablation on Rank $r$ and Noise Multiplier $\noise$}
