@@ -171,12 +171,15 @@ class MedMNISTFederated:
                 client_id, len(client_data), self.cfg.training.batch_size,
             )
         subset = Subset(self._train_ds, client_data)
+        use_gpu = torch.cuda.is_available()
+        nw = self.cfg.dataset.get("num_workers", 4)
         return DataLoader(
             subset,
             batch_size=self.cfg.training.batch_size,
             shuffle=True,
-            num_workers=0,
-            pin_memory=torch.cuda.is_available(),
+            num_workers=nw,
+            pin_memory=use_gpu,
+            persistent_workers=(nw > 0),
             drop_last=False,  # keep all samples; Opacus Poisson sampler handles batching
         )
 
@@ -184,19 +187,23 @@ class MedMNISTFederated:
         rng = np.random.default_rng(self.cfg.experiment.seed + client_id)
         n = len(self._val_ds)
         val_idx = rng.choice(n, size=max(1, int(n * 0.1)), replace=False).tolist()
+        nw = self.cfg.dataset.get("num_workers", 4)
         return DataLoader(
             Subset(self._val_ds, val_idx),
             batch_size=self.cfg.training.batch_size,
             shuffle=False,
-            num_workers=0,
+            num_workers=nw,
+            persistent_workers=(nw > 0),
         )
 
     def get_test_loader(self) -> DataLoader:
+        nw = self.cfg.dataset.get("num_workers", 4)
         return DataLoader(
             self._test_ds,
             batch_size=self.cfg.training.batch_size,
             shuffle=False,
-            num_workers=0,
+            num_workers=nw,
+            persistent_workers=(nw > 0),
         )
 
     @property

@@ -6,3 +6,4 @@ alpha: 0.5
 download: true
 data_dir: "data"
 val_split: 0.1
+num_workers: 4
