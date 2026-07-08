@@ -18,6 +18,8 @@ training:
   weight_decay: 1.0e-4
   # Set >0 to limit batches per client per epoch (fast sanity check on CPU)
   fast_dev_run: 0
+  # Mixed precision: 2-3x speedup on Tensor Core GPUs; no-op on CPU
+  use_amp: true
 
 hydra:
   run:

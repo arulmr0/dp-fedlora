@@ -18,6 +18,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from omegaconf import DictConfig
+from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader
 
 from src.model_module.backbone import MedicalViT
@@ -34,16 +35,20 @@ def _train_local(
     device: torch.device,
     multilabel: bool,
     max_batches: int = 0,
+    use_amp: bool = False,
 ) -> tuple[float, int]:
     """Train for local_epochs; returns (mean_loss, total_examples).
 
     Args:
         max_batches: If >0, stop after this many batches per epoch (fast_dev_run).
+        use_amp: Enable torch AMP mixed precision (2-3x speedup on Tensor Core GPUs).
     """
     model.train()
     criterion = nn.BCEWithLogitsLoss() if multilabel else nn.CrossEntropyLoss()
     total_loss = 0.0
     total_examples = 0
+    amp_enabled = use_amp and device.type == "cuda"
+    scaler = GradScaler(enabled=amp_enabled)
 
     for _ in range(local_epochs):
         for batch_idx, (images, labels) in enumerate(loader):
@@ -53,14 +58,15 @@ def _train_local(
             if multilabel:
                 labels = labels.float().to(device)
             else:
-                # squeeze(-1) is safe when batch_size=1 (plain squeeze would collapse batch dim)
                 labels = labels.squeeze(-1).long().to(device)
 
             optimizer.zero_grad()
-            logits = model(images)
-            loss = criterion(logits, labels)
-            loss.backward()
-            optimizer.step()
+            with autocast(device_type=device.type, enabled=amp_enabled):
+                logits = model(images)
+                loss = criterion(logits, labels)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             total_loss += loss.item() * images.size(0)
             total_examples += images.size(0)
@@ -126,6 +132,7 @@ class MedMNISTClient:
         )
 
         max_batches = int(self.cfg.training.get("fast_dev_run", 0))
+        use_amp = bool(self.cfg.training.get("use_amp", True))
 
         if self.cfg.privacy.enabled:
             from opacus import PrivacyEngine
@@ -149,6 +156,7 @@ class MedMNISTClient:
                 self.device,
                 self.multilabel,
                 max_batches=max_batches,
+                use_amp=use_amp,
             )
             epsilon = privacy_engine.get_epsilon(self.cfg.privacy.target_delta)
             metrics["epsilon"] = float(epsilon)
@@ -169,6 +177,7 @@ class MedMNISTClient:
                 self.device,
                 self.multilabel,
                 max_batches=max_batches,
+                use_amp=use_amp,
             )
             logger.debug("Client %d: loss=%.4f", self.client_id, loss)
 
