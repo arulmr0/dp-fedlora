@@ -44,6 +44,20 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# Pull CUDA-enabled torch on Windows/Linux; CPU-only on macOS
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu124", marker = "sys_platform != 'darwin'" },
+]
+torchvision = [
+  { index = "pytorch-cu124", marker = "sys_platform != 'darwin'" },
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
 
