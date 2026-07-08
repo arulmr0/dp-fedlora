@@ -26,6 +26,10 @@ from torchvision import transforms
 logger = logging.getLogger(__name__)
 
 
+def _to_rgb(img):
+    return img.convert("RGB")
+
+
 @lru_cache(maxsize=1)
 def _dataset_registry() -> dict[str, type]:
     """Build name→class map from medmnist.INFO (cached after first call)."""
@@ -48,7 +52,7 @@ def build_transforms(img_size: int, is_train: bool) -> Callable:
         aug
         + [
             transforms.Resize((img_size, img_size)),
-            transforms.Lambda(lambda x: x.convert("RGB")),
+            transforms.Lambda(_to_rgb),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
