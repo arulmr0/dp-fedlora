@@ -59,6 +59,8 @@ def _train_local(
         for batch_idx, (images, labels) in enumerate(loader):
             if max_batches > 0 and batch_idx >= max_batches:
                 break
+            if images.size(0) == 0:  # Poisson sampling can yield empty batches
+                continue
             images = images.to(device)
             if multilabel:
                 labels = labels.float().to(device)
