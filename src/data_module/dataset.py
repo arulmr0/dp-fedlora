@@ -113,6 +113,31 @@ def dirichlet_partition(
     return client_indices
 
 
+class _LabelToTensorDataset(torch.utils.data.Dataset):
+    """Wraps a MedMNIST dataset so __getitem__ returns labels as torch.Tensor.
+
+    Opacus 1.5.4 extracts dtype metadata from batch items via type(elem.dtype).
+    Under numpy 2.x this yields numpy.dtypes.Int64DType (a new class), which
+    torch.zeros() does not accept. Returning torch tensors bypasses that path.
+    """
+
+    def __init__(self, ds: torch.utils.data.Dataset) -> None:
+        self._ds = ds
+
+    def __len__(self) -> int:
+        return len(self._ds)
+
+    def __getitem__(self, idx: int):
+        img, label = self._ds[idx]
+        if isinstance(label, np.ndarray):
+            label = torch.from_numpy(label.copy()).long()
+        return img, label
+
+    @property
+    def labels(self):
+        return self._ds.labels
+
+
 class MedMNISTFederated:
     """Manages MedMNIST train/val/test splits and per-client data loaders.
 
@@ -154,11 +179,11 @@ class MedMNISTFederated:
         if size_arg is not None:
             common_kwargs["size"] = size_arg
 
-        self._train_ds = cls(split="train", transform=train_tf, **common_kwargs)
-        self._val_ds = cls(split="val", transform=eval_tf, **common_kwargs)
-        self._test_ds = cls(split="test", transform=eval_tf, **common_kwargs)
+        raw_train = cls(split="train", transform=train_tf, **common_kwargs)
+        raw_val = cls(split="val", transform=eval_tf, **common_kwargs)
+        raw_test = cls(split="test", transform=eval_tf, **common_kwargs)
 
-        raw_labels = np.array(self._train_ds.labels)
+        raw_labels = np.array(raw_train.labels)
         if raw_labels.ndim == 2 and raw_labels.shape[1] > 1:
             # Multi-label (e.g. ChestMNIST): derive a single primary class per sample
             # for Dirichlet partitioning. Samples with at least one positive label use
@@ -175,6 +200,9 @@ class MedMNISTFederated:
             alpha=cfg.dataset.alpha,
             seed=cfg.experiment.seed,
         )
+        self._train_ds = _LabelToTensorDataset(raw_train)
+        self._val_ds = _LabelToTensorDataset(raw_val)
+        self._test_ds = _LabelToTensorDataset(raw_test)
 
     def get_train_loader(self, client_id: int) -> DataLoader:
         client_data = self._client_indices[client_id]
