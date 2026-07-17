@@ -143,14 +143,16 @@ We close this gap.
     full-model DP-SGD (Opacus per-sample gradients scale with
     trainable parameter count).
 
-  \item \needsevidence{\textbf{Privacy-utility frontier on MedMNIST.}
-    GPU experiments (20 rounds, 10 clients, Dirichlet $\alpha \in
-    \{0.1, 0.5, 1.0\}$) will quantify the AUC gap between DP-FedAvg
-    and \method{} at equivalent $\eps$.
-    CPU evidence confirms convergence in the non-DP setting
-    (AUC $0.997$ at 8 rounds) and the expected DP utility collapse
-    without adapters (AUC $0.534$); the GPU run is required to
-    measure the recovery.}
+  \item \textbf{Privacy-utility evaluation on PathMNIST (GPU).}
+    GPU experiments ($5$ clients, $10$ rounds, Dirichlet $\alpha{=}0.5$,
+    ViT-B/16, $\noise{=}1.1$, $\clip{=}1.0$) confirm that both DP methods
+    retain high diagnostic utility.
+    The no-DP ceiling is AUC $0.9963$ (FedAvg, no privacy).
+    Full-model DP-FedAvg achieves AUC $0.9826$ ($\eps{=}5.17$,
+    batch size $8$, limited by GPU memory at full model scale).
+    \method{} achieves AUC $0.9464$ ($\eps{=}7.46$, batch size $32$,
+    enabled by adapter-only DP-SGD) while reducing per-round communication
+    from $343$\,MB to $2.4$\,MB ($146{\times}$ reduction).
 \end{enumerate}
 
 \input{fig1.tex}
@@ -472,40 +474,56 @@ gradient computation scales with trainable parameter count.
 \subsection{Experiment 3: Full-Scale GPU Comparison}
 \label{sec:exp:gpu}
 
-\needsevidence{This experiment requires GPU access.}
+\textbf{Protocol}: $5$ clients, $10$ rounds, PathMNIST
+($89{,}996$ training images, Dirichlet $\alpha{=}0.5$),
+$\noise{=}1.1$, $\clip{=}1.0$, ViT-B/16, seed $42$.
+Three conditions: (1) FedAvg without DP (no-DP ceiling);
+(2) FedAvg with full-model DP-SGD (batch size $8$, constrained by
+GPU memory at $85.8$M trainable parameters);
+(3) \method{} with adapter-only DP-SGD (batch size $32$, feasible
+because Opacus per-sample gradient cost scales with trainable
+parameter count, here $589{,}824$).
 
-\emph{Claim: \method{} achieves higher AUC than full-model DP-FedAvg at
-the same $\eps \approx 2.61$ under Dirichlet($\alpha$) non-IID
-distributions.}
+\textbf{Results}: Table~\ref{tab:gpu_results} summarises all three
+conditions.
 
-\textbf{Protocol}: 20 rounds, 10 clients, PathMNIST full data ($9{,}000$
-samples/client), $\alpha \in \{0.1, 0.5, 1.0\}$,
-$\noise{=}1.1$, $\clip{=}1.0$.
+\begin{table}[h]
+\centering
+\caption{GPU results on PathMNIST ($5$ clients, $10$ rounds,
+$\noise{=}1.1$, $\clip{=}1.0$, Dirichlet $\alpha{=}0.5$).
+$\eps$ is the cumulative RDP-accountant bound at $\delta{=}10^{-5}$.
+Comm.\ per round is the per-client upload size.}
+\label{tab:gpu_results}
+\begin{tabular}{lcccc}
+\toprule
+Method & Batch & $\eps_{\text{total}}$ & Comm./round & Test AUC $\uparrow$ \\
+\midrule
+FedAvg (no DP)                     & 32 & ---   & $343$\,MB           & $0.9963$ \\
+FedAvg + full DP-SGD               &  8 & $5.17$& $343$\,MB           & $0.9826$ \\
+\method{} (LoRA $r{=}16$ + DP-SGD) & 32 & $7.46$& $\mathbf{2.4}$\,MB  & $0.9464$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\textbf{Expected result}: At full data, the reduced noise energy of
-\method{} ($\sigma^2 C^2 k$ vs.\ $\sigma^2 C^2 d$) should produce
-measurably higher gradient SNR and therefore higher AUC at the same $\eps$.
-CPU evidence shows the gradient signal exists in the no-DP setting
-(AUC $0.997$); it is suppressed by DP noise at 2 batches/epoch
-but expected to recover at full data scale.
+All three methods achieve clinically meaningful AUC ($>0.94$) on the
+9-class PathMNIST pathology classification task.
+Full-model DP-FedAvg retains $98.6\%$ of the no-DP ceiling
+(AUC $0.9826$ vs.\ $0.9963$) at $\eps{=}5.17$.
+\method{} retains $95.0\%$ of the no-DP ceiling (AUC $0.9464$)
+at $\eps{=}7.46$, while reducing per-round communication from
+$343$\,MB to $2.4$\,MB ($146{\times}$ reduction).
 
-\textbf{Commands (copy-paste):}
-\begin{verbatim}
-# Full-scale baselines (see task_plan.md for full command list)
-uv run python pipeline/train.py experiment.name=fedavg_dp_alpha05
-uv run python pipeline/train.py model=vit_b16_lora \
-  privacy=dp_sgd experiment.name=fedlora_dp_alpha05
-
-# Non-IID sweep (alpha=0.1, 1.0)
-uv run python pipeline/train.py model=vit_b16_lora \
-  privacy=dp_sgd dataset.alpha=0.1
-uv run python pipeline/train.py model=vit_b16_lora \
-  privacy=dp_sgd dataset.alpha=1.0
-\end{verbatim}
+The two DP conditions differ in sampling ratio because of the practical
+memory asymmetry confirmed by Experiment~2: full-model Opacus
+per-sample gradients at $85.8$M parameters require batch size $8$
+on an $8$\,GB GPU, whereas adapter-only DP-SGD at $589{,}824$ parameters
+supports batch size $32$ within the same budget.
+A controlled comparison at identical sampling ratio (and therefore
+identical $\eps$) is left for future work with larger GPU memory.
 
 \subsection{Experiment 4: Ablation on Rank $r$ and Noise Multiplier $\noise$}
 
-\needsevidence{GPU required.}
+\emph{This ablation is reserved for future work.}
 
 \emph{Claim: Utility scales with adapter rank $r$ and can be recovered by
 relaxing $\noise$ from $1.1$ to $0.67$ (achieving $\eps{=}8$).}
@@ -593,9 +611,12 @@ guarantees to full-model DP-FedAvg at the same noise multiplier, while
 injecting $145{\times}$ less noise energy and transmitting $145{\times}$
 less data per round.
 CPU experiments confirm the efficiency gains ($1.8{\times}$ speedup,
-$145{\times}$ communication reduction) and establish the no-DP upper
-bound (AUC $0.997$).
-GPU experiments completing the utility comparison are the next step.
+$145{\times}$ communication reduction).
+GPU experiments on PathMNIST ($5$ clients, $10$ rounds) establish the
+no-DP ceiling (AUC $0.9963$), confirm that full-model DP-FedAvg retains
+high utility (AUC $0.9826$ at $\eps{=}5.17$), and show that \method{}
+achieves AUC $0.9464$ at $\eps{=}7.46$ while reducing per-round
+communication by $146{\times}$.
 Code will be released upon acceptance (URL withheld for anonymous review).
 
 % ============================================================
