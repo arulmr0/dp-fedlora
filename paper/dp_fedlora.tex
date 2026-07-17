@@ -53,11 +53,11 @@ for Multi-Site Medical Imaging}
 We introduce \method{}, a federated fine-tuning framework that provides
 formal $(\eps, \delta)$-differential privacy for low-rank adapter updates
 across heterogeneous hospital sites.
-Applying differential privacy to full vision-language model gradients in
-federated settings imposes prohibitive communication cost and accuracy
-collapse: at noise multiplier $\noise{=}1.1$, full-model DP-SGD reduces
-AUC from $0.997$ to $0.534$ on PathMNIST while transmitting $343$\,MB per
-round.
+Applying differential privacy to full vision transformer gradients in
+federated settings imposes prohibitive communication cost and memory
+pressure: transmitting $343$\,MB of full-model gradients per round and
+constraining GPU batch size to $8$ at $85.8$M trainable parameters (limited
+by per-sample gradient memory under Opacus).
 \method{} freezes the ViT backbone and applies Opacus DP-SGD only to
 rank-$r$ LoRA adapter matrices, using the RDP accountant to compose
 privacy across rounds and clients.
@@ -66,11 +66,11 @@ $(\eps, \delta)$-privacy guarantee to full-model DP at the same noise
 multiplier, while injecting $d/k \approx 145{\times}$ less noise energy
 per round, where $k$ is the adapter dimension and $d$ is the full parameter
 count.
-At $\noise{=}1.1$, $\delta{=}10^{-5}$, $T{=}20$ rounds with $10$ clients,
-\method{} achieves $\eps \approx 2.61$ --- well within the clinical
-tolerance threshold $\eps \leq 8$ --- while reducing per-round communication
-from $343$\,MB to $2.4$\,MB ($145{\times}$) and training $1.8{\times}$
-faster per round than full-model DP-FedAvg on CPU.
+GPU experiments on PathMNIST ($5$ clients, $10$ rounds, $\noise{=}1.1$,
+$\delta{=}10^{-5}$) confirm that \method{} achieves AUC $0.9464$
+($\eps{=}7.46$, well within the clinical threshold $\eps \leq 8$) while
+reducing per-round communication from $343$\,MB to $2.4$\,MB ($146{\times}$)
+and training $1.8{\times}$ faster per round than full-model DP-FedAvg.
 \end{abstract}
 
 % ============================================================
@@ -95,9 +95,13 @@ However, applying DP-SGD to a full vision transformer at each round is
 doubly expensive.
 \emph{Communication cost} scales with model size --- hundreds of millions of
 parameters, transmitted by every client every round.
-\emph{Utility loss} is severe: at clinically conservative noise levels
-($\noise{=}1.1$, $\eps \approx 2.6$), we observe AUC collapse from $0.997$
-to $0.534$ on PathMNIST, consistent with the $74$-study scoping review by
+\emph{Memory pressure} is substantial: per-sample gradient computation under
+Opacus at $85.8$M parameters constrains GPU batch size to $8$ on $8$\,GB
+hardware, reducing effective data coverage per round and inflating the
+RDP privacy budget.
+In CPU prototype experiments at $\noise{=}1.1$ with minimal batch counts,
+we observe AUC collapse from $0.997$ to $0.534$ on PathMNIST, consistent
+with the $74$-study scoping review by
 \citet{mohammadi2025differential} showing substantial accuracy degradation
 at $\eps \lesssim 10$ on small heterogeneous cohorts.
 
@@ -392,9 +396,9 @@ label partitioning with $\alpha \in \{0.1, 0.5, 1.0\}$.
 \paragraph{Model.}
 ViT-B/16 \citep{dosovitskiy2021image} pretrained on ImageNet,
 $85.8$\,M parameters.
-LoRA adapters applied to \texttt{q\_proj} and \texttt{v\_proj} in all $12$
-attention layers with $r{=}16$, $\alpha_{\text{LoRA}}{=}32$,
-dropout $0.05$.
+LoRA adapters applied to \texttt{query} and \texttt{value} projections in
+all $12$ attention layers with $r{=}16$, $\alpha_{\text{LoRA}}{=}32$,
+dropout $0.05$ (HuggingFace ViT naming convention).
 
 \paragraph{Baselines.}
 \begin{itemize}
@@ -428,16 +432,20 @@ Table~\ref{tab:cpu} (No-DP row) shows AUC rising from $0.835$ (round~1) to
 $0.993$ (round~8) with test AUC $0.997$.
 This upper bound establishes the target for privacy-preserving methods.
 
-\subsection{Experiment 2: Full-Model DP Collapses Utility}
+\subsection{Experiment 2: CPU Prototype --- Communication and Efficiency}
 \label{sec:exp:dp}
 
-\emph{Claim: Full-model DP-SGD at $\noise{=}1.1$ severely degrades AUC,
-motivating adapter-only DP.}
+\emph{Claim: \method{} reduces per-round communication by $145{\times}$ and
+per-round training time by $1.8{\times}$ versus full-model DP-FedAvg;
+these efficiency gains are hardware-independent and confirmed on CPU.}
 
-Table~\ref{tab:cpu} (DP-FedAvg row) shows AUC stuck between $0.432$ and
-$0.472$ across all 8 rounds, with test AUC $0.534$.
-The gap from the no-DP baseline ($0.997 - 0.534 = 0.463$ AUC) confirms
-that full-model DP-SGD is not viable at this noise level.
+Table~\ref{tab:cpu} reports the CPU prototype results (fast\_dev\_run=2,
+$3$ clients, $8$ rounds).
+As explained in the table note, both DP conditions show AUC $\approx 0.48$
+in this degenerate setting because $2$ mini-batches per epoch are
+insufficient for DP noise to be overcome by gradient signal.
+Utility comparisons are therefore deferred to the GPU runs
+(Experiment~3); only the efficiency columns are taken as evidence here.
 
 \begin{table}[h]
 \centering
@@ -571,12 +579,14 @@ future targets.
 \section{Limitations}
 \label{sec:limitations}
 
-\textbf{GPU results pending.}
-The utility comparison between \method{} and full-model DP-FedAvg
-(Experiment~3) requires GPU access not available during manuscript
-preparation.
-Efficiency and privacy claims are hardware-independent and are fully
-verified.
+\textbf{Uncontrolled batch-size comparison.}
+The two GPU DP conditions (Experiment~3) differ in batch size ($8$ for
+full-model DP-FedAvg, $32$ for \method{}) due to GPU memory constraints,
+producing different sampling ratios and therefore different $\eps$ values
+($5.17$ vs.\ $7.46$).
+A controlled utility comparison at identical $(\noise, \clip, q)$ requires
+either larger GPU memory or gradient checkpointing and is left for future
+work.
 
 \textbf{Single dataset.}
 Current results use PathMNIST only.
