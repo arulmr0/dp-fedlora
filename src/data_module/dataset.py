@@ -158,7 +158,17 @@ class MedMNISTFederated:
         self._val_ds = cls(split="val", transform=eval_tf, **common_kwargs)
         self._test_ds = cls(split="test", transform=eval_tf, **common_kwargs)
 
-        train_labels = np.array(self._train_ds.labels).flatten()
+        raw_labels = np.array(self._train_ds.labels)
+        if raw_labels.ndim == 2 and raw_labels.shape[1] > 1:
+            # Multi-label (e.g. ChestMNIST): derive a single primary class per sample
+            # for Dirichlet partitioning. Samples with at least one positive label use
+            # argmax; samples with all-zero labels ("normal") get an extra class index.
+            has_label = raw_labels.sum(axis=1) > 0
+            primary = raw_labels.argmax(axis=1).astype(int)
+            primary[~has_label] = raw_labels.shape[1]  # "normal" class
+            train_labels = primary
+        else:
+            train_labels = raw_labels.flatten()
         self._client_indices = dirichlet_partition(
             labels=train_labels,
             num_clients=cfg.dataset.num_clients,

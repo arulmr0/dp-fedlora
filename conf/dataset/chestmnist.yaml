@@ -1,7 +1,7 @@
 name: "chestmnist"
 num_classes: 14
 img_size: 224
-num_clients: 10
+num_clients: 5
 alpha: 0.5
 download: true
 data_dir: "data"
