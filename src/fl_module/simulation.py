@@ -16,9 +16,11 @@ ViT-B (~344 MB each), reduce num_clients or use gradient checkpointing.
 """
 
 import copy
+import json
 import logging
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Callable, Optional
 
 import torch
@@ -121,6 +123,15 @@ def run_fl_simulation(
         f"DP={cfg.privacy.enabled}  alpha={cfg.dataset.alpha}"
     )
 
+    try:
+        from hydra.utils import get_original_cwd
+        _cwd = get_original_cwd()
+    except Exception:
+        import os
+        _cwd = os.getcwd()
+    _output_dir = Path(_cwd) / "outputs" / cfg.experiment.name
+    _output_dir.mkdir(parents=True, exist_ok=True)
+
     val_loader = fed_dataset.get_val_loader(0)
 
     for round_num in range(1, num_rounds + 1):
@@ -163,5 +174,7 @@ def run_fl_simulation(
             round_num, num_rounds, result.train_loss, result.val_accuracy,
             result.val_auc, result.epsilon_str, elapsed,
         )
+        _ckpt = {"rounds_completed": round_num, "history": history.to_dict()}
+        (_output_dir / "history_checkpoint.json").write_text(json.dumps(_ckpt, indent=2))
 
     return history
