@@ -82,6 +82,17 @@ class SimulationHistory:
         }
 
 
+def _find_resume_point(output_dir: Path) -> int:
+    """Return the highest completed round number found in output_dir, or 0."""
+    ckpts = sorted(
+        output_dir.glob("model_checkpoint_round*.pt"),
+        key=lambda p: int(p.stem.split("round")[-1]),
+    )
+    if not ckpts:
+        return 0
+    return int(ckpts[-1].stem.split("round")[-1])
+
+
 def run_fl_simulation(
     cfg: DictConfig,
     fed_dataset,
@@ -95,34 +106,16 @@ def run_fl_simulation(
       2. Each client trains locally (with optional DP).
       3. FedAvg aggregates updates into new global parameters.
       4. Global model is evaluated on val_loader[0] for per-round logging.
+
+    Checkpointing: after each round, history_checkpoint.json and
+    model_checkpoint_round{N}.pt are written. On restart the simulation
+    resumes from the last completed round automatically.
     """
     num_clients = cfg.dataset.num_clients
     num_rounds = cfg.training.num_rounds
     multilabel = cfg.dataset.get("multilabel", False)
 
-    # One independent model per client so gradients don't interfere.
-    # Memory: ViT-B ≈ 344 MB × num_clients. Reduce num_clients for low-RAM machines.
-    client_models = [copy.deepcopy(global_model) for _ in range(num_clients)]
-    client_fn: Callable[[str], MedMNISTClient] = build_client_fn(
-        models=client_models,
-        fed_dataset=fed_dataset,
-        cfg=cfg,
-        device=device,
-    )
-
-    history = SimulationHistory(
-        privacy_budget=PrivacyBudget(
-            target_delta=cfg.privacy.target_delta if cfg.privacy.enabled else 1e-5
-        )
-    )
-    current_params = global_model.get_parameters()
-
-    console.rule(f"[bold cyan]FL Simulation — {cfg.experiment.name}")
-    console.print(
-        f"  Clients={num_clients}  Rounds={num_rounds}  "
-        f"DP={cfg.privacy.enabled}  alpha={cfg.dataset.alpha}"
-    )
-
+    # ── Output dir (resolved before client setup so resume detection runs first) ─
     try:
         from hydra.utils import get_original_cwd
         _cwd = get_original_cwd()
@@ -132,9 +125,63 @@ def run_fl_simulation(
     _output_dir = Path(_cwd) / "outputs" / cfg.experiment.name
     _output_dir.mkdir(parents=True, exist_ok=True)
 
+    # ── Resume detection ──────────────────────────────────────────────────────
+    resume_from = _find_resume_point(_output_dir)
+    if resume_from > 0:
+        ckpt = torch.load(
+            _output_dir / f"model_checkpoint_round{resume_from}.pt",
+            map_location=device,
+        )
+        global_model.set_parameters(ckpt["params"])
+        console.print(
+            f"  [bold yellow]Checkpoint found — resuming after round "
+            f"{resume_from}/{num_rounds}[/bold yellow]"
+        )
+
+    # ── Client setup (after resume so deepcopy picks up correct weights) ──────
+    # Memory: ViT-B ≈ 344 MB × num_clients. Reduce num_clients for low-RAM machines.
+    client_models = [copy.deepcopy(global_model) for _ in range(num_clients)]
+    client_fn: Callable[[str], MedMNISTClient] = build_client_fn(
+        models=client_models,
+        fed_dataset=fed_dataset,
+        cfg=cfg,
+        device=device,
+    )
+
+    # ── History (restored from JSON if resuming) ──────────────────────────────
+    history = SimulationHistory(
+        privacy_budget=PrivacyBudget(
+            target_delta=cfg.privacy.target_delta if cfg.privacy.enabled else 1e-5
+        )
+    )
+    if resume_from > 0:
+        saved = json.loads((_output_dir / "history_checkpoint.json").read_text())
+        for r in saved["history"]["rounds"]:
+            if r["round"] <= resume_from:
+                history.add_round(RoundResult(
+                    round_num=r["round"],
+                    train_loss=r["train_loss"],
+                    val_accuracy=r["val_accuracy"],
+                    val_auc=r["val_auc"],
+                    epsilon=r["epsilon"],
+                    round_seconds=r["seconds"],
+                ))
+
+    current_params = global_model.get_parameters()
+
+    resume_tag = (
+        f"  [yellow](resuming from round {resume_from})[/yellow]"
+        if resume_from > 0 else ""
+    )
+    console.rule(f"[bold cyan]FL Simulation — {cfg.experiment.name}")
+    console.print(
+        f"  Clients={num_clients}  Rounds={num_rounds}  "
+        f"DP={cfg.privacy.enabled}  alpha={cfg.dataset.alpha}{resume_tag}"
+    )
+
     val_loader = fed_dataset.get_val_loader(0)
 
-    for round_num in range(1, num_rounds + 1):
+    for round_num in range(resume_from + 1, num_rounds + 1):
         t0 = time.perf_counter()
         client_results = []
 
@@ -174,7 +221,13 @@ def run_fl_simulation(
             round_num, num_rounds, result.train_loss, result.val_accuracy,
             result.val_auc, result.epsilon_str, elapsed,
         )
-        _ckpt = {"rounds_completed": round_num, "history": history.to_dict()}
-        (_output_dir / "history_checkpoint.json").write_text(json.dumps(_ckpt, indent=2))
+
+        # Write history then model checkpoint — both done before next round starts
+        _ckpt_json = {"rounds_completed": round_num, "history": history.to_dict()}
+        (_output_dir / "history_checkpoint.json").write_text(json.dumps(_ckpt_json, indent=2))
+        torch.save(
+            {"params": current_params, "round": round_num},
+            _output_dir / f"model_checkpoint_round{round_num}.pt",
+        )
 
     return history
