@@ -107,13 +107,26 @@ def build_model(cfg: DictConfig) -> "MedicalViT":
         # With LoRA the backbone is frozen (requires_grad=False); only the adapter
         # nn.Linear layers receive DP noise, and those are trivially Opacus-compatible.
 
+        # Resolve target module names: transformers <4.45 uses "query"/"value",
+        # newer versions use "q_proj"/"v_proj". Detect by inspecting actual module names.
+        all_module_names = {name.split(".")[-1] for name, _ in model.vit.named_modules()}
+        requested = list(cfg.model.lora_target_modules)
+        if not all(m in all_module_names for m in requested):
+            _ALIASES = {"query": "q_proj", "value": "v_proj", "key": "k_proj"}
+            resolved = [_ALIASES.get(m, m) for m in requested]
+            logger.info(
+                "LoRA target_modules %s not found; remapping to %s (newer transformers naming)",
+                requested, resolved,
+            )
+            requested = resolved
+
         # No task_type: bare PeftModel with suffix matching, correct for ViT
         # (not natively supported by PEFT task-specific wrappers).
         lora_cfg = LoraConfig(
             r=cfg.model.lora_r,
             lora_alpha=cfg.model.lora_alpha,
             lora_dropout=cfg.model.lora_dropout,
-            target_modules=list(cfg.model.lora_target_modules),
+            target_modules=requested,
             bias="none",
         )
         model.vit = get_peft_model(model.vit, lora_cfg)
